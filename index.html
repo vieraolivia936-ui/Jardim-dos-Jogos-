@@ -1,0 +1,203 @@
+[jardim_dos_jogos.html](https://github.com/user-attachments/files/33897691/jardim_dos_jogos.html)
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jardim dos Jogos</title>
+<style>
+:root{--sage:#8da58b;--sage-dark:#354c3b;--beige:#d7c6a5;--cream:#f8f5eb;--paper:#fffdf7;--ink:#26352a;--focus:#174ea6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font:18px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--sage-dark);color:white;padding:28px 18px;text-align:center}
+header h1{margin:0;font-size:clamp(2rem,5vw,3rem)} header p{margin:8px auto 0;max-width:700px}
+main{max-width:1050px;margin:auto;padding:20px}
+nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 20px}
+button,select,input{font:inherit}
+button,.tab{border:2px solid var(--sage-dark);border-radius:12px;padding:10px 15px;background:var(--paper);color:var(--ink);cursor:pointer}
+button:hover,.tab:hover{background:#e6eddf}
+button:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.tab[aria-selected="true"]{background:var(--sage-dark);color:white}
+.panel{display:none;background:var(--paper);border:1px solid var(--beige);border-radius:18px;padding:20px;margin-bottom:18px}
+.panel.active{display:block}
+h2{color:var(--sage-dark);margin-top:0}
+.small{font-size:.92rem}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.status{background:#eef2e8;border-radius:10px;padding:10px 14px;min-height:46px}
+.memory-grid{display:grid;grid-template-columns:repeat(4,minmax(58px,1fr));gap:10px;max-width:580px;margin:18px auto}
+.memory-card{min-height:100px;font-size:clamp(1.7rem,5vw,2.7rem);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px}
+.memory-card small{font-size:.75rem;line-height:1.2}
+.memory-card[disabled]{opacity:1;cursor:default;background:#e5ebdd}
+.puzzle-board{display:grid;grid-template-columns:repeat(3,minmax(65px,1fr));gap:6px;max-width:430px;margin:18px auto}
+.piece{min-height:90px;background:#e5ebdd;font-size:2rem;font-weight:700}
+.piece.blank{background:#f3eee1;border-style:dashed}
+.quiz-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}
+.quiz-options button{text-align:left}
+.drawing-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+canvas{display:block;width:100%;max-width:700px;height:auto;background:white;border:2px solid var(--beige);border-radius:12px;touch-action:none;margin:14px auto}
+.habitat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}
+.habitat-grid button{min-height:88px}
+footer{text-align:center;padding:20px;color:#445547;font-size:.9rem}
+.high-contrast{--cream:#fff;--paper:#fff;--ink:#000;--sage:#fff;--sage-dark:#000;--beige:#000}
+.large-text{font-size:22px}
+@media(max-width:520px){main{padding:12px}.panel{padding:14px}.memory-grid{gap:6px}.memory-card{min-height:78px}.piece{min-height:68px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<h1>🌿 Jardim dos Jogos</h1>
+<p>Um cantinho para aprender, criar e brincar no seu próprio ritmo.</p>
+</header>
+<main>
+<div class="controls" aria-label="Preferências de acessibilidade">
+<button id="textToggle" type="button">Aumentar texto</button>
+<button id="contrastToggle" type="button">Alto contraste</button>
+<span class="small">Dica: use Tab e Enter para navegar pelos botões.</span>
+</div>
+<nav aria-label="Categorias de jogos" role="tablist">
+<button class="tab" role="tab" aria-selected="true" data-target="memory">ꕤ Memória</button>
+<button class="tab" role="tab" aria-selected="false" data-target="puzzle">꩜ Quebra-cabeças</button>
+<button class="tab" role="tab" aria-selected="false" data-target="learn">⌛ Aprender brincando</button>
+<button class="tab" role="tab" aria-selected="false" data-target="creative">✍ Jogos de criatividade</button>
+<button class="tab" role="tab" aria-selected="false" data-target="nature">𓅃 Desafios da natureza</button>
+</nav>
+
+<section class="panel active" id="memory" role="tabpanel">
+<h2>ꕤ Jardim da Memória</h2>
+<p>Vire duas cartas por vez e encontre os pares de animais e elementos da natureza. Não há cronômetro.</p>
+<div class="controls"><label for="memoryLevel">Quantidade de pares:</label><select id="memoryLevel"><option value="4">4 pares — fácil</option><option value="6">6 pares — médio</option><option value="8">8 pares — desafio</option></select><button id="newMemory">Novo jogo</button></div>
+<div class="status" id="memoryStatus" aria-live="polite">Encontre todos os pares!</div>
+<div class="memory-grid" id="memoryGrid"></div>
+</section>
+
+<section class="panel" id="puzzle" role="tabpanel">
+<h2>꩜ Quebra-cabeça tranquilo</h2>
+<p>Organize os números na ordem correta. Escolha uma peça ao lado do espaço vazio para movê-la. Jogue sem pressa!</p>
+<div class="controls"><button id="shufflePuzzle">Embaralhar peças</button><button id="solvePuzzle">Recomeçar resolvido</button></div>
+<div class="status" id="puzzleStatus" aria-live="polite">Objetivo: organizar os números de 1 a 8, deixando o espaço vazio por último.</div>
+<div class="puzzle-board" id="puzzleBoard"></div>
+</section>
+
+<section class="panel" id="learn" role="tabpanel">
+<h2>⌛ Aprender brincando</h2>
+<p>Responda às perguntas de letras, números e conhecimentos gerais. Você pode tentar novamente sem perder pontos por errar.</p>
+<div class="status" id="quizProgress" aria-live="polite">Pergunta 1</div>
+<h3 id="quizQuestion"></h3>
+<div class="quiz-options" id="quizOptions"></div>
+<div class="status" id="quizFeedback" aria-live="polite">Escolha uma resposta.</div>
+<div class="controls"><button id="nextQuestion">Próxima pergunta</button><button id="restartQuiz">Recomeçar atividade</button></div>
+</section>
+
+<section class="panel" id="creative" role="tabpanel">
+<h2>✍ Jogos de criatividade</h2>
+<p>Crie seu próprio desenho com cores e formas. Não existe resposta certa ou errada.</p>
+<div class="drawing-tools">
+<label for="drawColor">Cor:</label><input id="drawColor" type="color" value="#648b68" aria-label="Escolher cor do desenho">
+<label for="brushSize">Tamanho do traço:</label><select id="brushSize"><option value="4">Pequeno</option><option value="9" selected>Médio</option><option value="16">Grande</option></select>
+<button id="stampFlower">Adicionar flor</button><button id="stampSun">Adicionar sol</button><button id="clearCanvas">Apagar desenho</button>
+</div>
+<canvas id="drawing" width="700" height="390" aria-label="Área de desenho. Use o mouse ou toque para desenhar."></canvas>
+<p class="small">No celular ou tablet, desenhe arrastando o dedo pela área branca.</p>
+</section>
+
+<section class="panel" id="nature" role="tabpanel">
+<h2>𓅃 Desafios da natureza</h2>
+<p>Combine cada animal com o habitat onde costuma viver. Se errar, tente outra opção.</p>
+<div class="status" id="natureProgress" aria-live="polite">Desafio 1 de 5</div>
+<h3 id="natureQuestion"></h3>
+<div class="habitat-grid" id="habitatOptions"></div>
+<div class="status" id="natureFeedback" aria-live="polite">Escolha um habitat.</div>
+<div class="controls"><button id="nextNature">Próximo desafio</button><button id="restartNature">Recomeçar desafios</button></div>
+</section>
+</main>
+<footer>Jardim dos Jogos · Aprender e brincar com respeito às diferenças 🌱<br>Protótipo inicial: teste os jogos e os recursos de acessibilidade antes de divulgar o site.</footer>
+<script>
+const $=id=>document.getElementById(id);
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{
+ document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t===tab)));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===tab.dataset.target));
+ tab.focus();
+}));
+$('textToggle').addEventListener('click',()=>{document.body.classList.toggle('large-text');$('textToggle').textContent=document.body.classList.contains('large-text')?'Texto normal':'Aumentar texto';});
+$('contrastToggle').addEventListener('click',()=>{document.body.classList.toggle('high-contrast');$('contrastToggle').textContent=document.body.classList.contains('high-contrast')?'Contraste normal':'Alto contraste';});
+
+// Memory game
+const cardsData=[['🐢','Tartaruga'],['🌼','Flor'],['🦋','Borboleta'],['🍃','Folha'],['🐝','Abelha'],['🐸','Sapo'],['🌳','Árvore'],['🐞','Joaninha']];
+let memDeck=[],memOpen=[],memMatched=0,memLock=false,memMoves=0;
+function startMemory(){
+ const n=Number($('memoryLevel').value);memDeck=[...cardsData.slice(0,n),...cardsData.slice(0,n)].map((c,i)=>({emoji:c[0],name:c[1],key:c[1]+'-'+(i<n?'a':'b'),revealed:false,matched:false})).sort(()=>Math.random()-.5);
+ memOpen=[];memMatched=0;memMoves=0;memLock=false;renderMemory();$('memoryStatus').textContent='Encontre todos os pares! Jogadas: 0.';
+}
+function renderMemory(){
+ const grid=$('memoryGrid');grid.innerHTML='';
+ memDeck.forEach((c,i)=>{const b=document.createElement('button');b.className='memory-card';b.type='button';b.disabled=c.matched;b.setAttribute('aria-label',c.matched||c.revealed?c.name:'Carta fechada '+(i+1));
+ b.innerHTML=c.matched||c.revealed?`${c.emoji}<small>${c.name}</small>`:'🌿<small>Virar carta</small>';
+ b.addEventListener('click',()=>flipMemory(i));grid.appendChild(b);});
+}
+function flipMemory(i){
+ if(memLock||memDeck[i].matched||memDeck[i].revealed)return;
+ memDeck[i].revealed=true;memOpen.push(i);renderMemory();
+ if(memOpen.length===2){memMoves++;const [a,b]=memOpen;
+ if(memDeck[a].key.split('-')[0]===memDeck[b].key.split('-')[0]){
+ memDeck[a].matched=memDeck[b].matched=true;memMatched+=2;memOpen=[];renderMemory();
+ $('memoryStatus').textContent=memMatched===memDeck.length?`Parabéns! Você encontrou todos os pares em ${memMoves} jogadas. 🎉`:`Par encontrado! Pares: ${memMatched/2} de ${memDeck.length/2}. Jogadas: ${memMoves}.`;
+ }else{memLock=true;$('memoryStatus').textContent='Essas cartas são diferentes. Elas vão fechar quando você escolher continuar.';const closeBtn=document.createElement('button');closeBtn.textContent='Fechar cartas e continuar';closeBtn.id='closeMemory';$('memoryStatus').append(' ');$('memoryStatus').appendChild(closeBtn);closeBtn.addEventListener('click',()=>{memDeck[a].revealed=memDeck[b].revealed=false;memOpen=[];memLock=false;renderMemory();$('memoryStatus').textContent=`Continue procurando os pares. Jogadas: ${memMoves}.`;});}
+ }
+}
+$('newMemory').addEventListener('click',startMemory);$('memoryLevel').addEventListener('change',startMemory);startMemory();
+
+// Sliding puzzle
+let puzzle=[1,2,3,4,5,6,7,8,0];
+function renderPuzzle(){
+ const board=$('puzzleBoard');board.innerHTML='';
+ puzzle.forEach((v,i)=>{const b=document.createElement('button');b.className='piece'+(v===0?' blank':'');b.textContent=v===0?'Espaço vazio':v;b.setAttribute('aria-label',v===0?'Espaço vazio':'Peça '+v);b.addEventListener('click',()=>movePiece(i));board.appendChild(b);});
+}
+function movePiece(i){
+ const z=puzzle.indexOf(0),r=Math.floor(i/3),c=i%3,zr=Math.floor(z/3),zc=z%3;
+ if(Math.abs(r-zr)+Math.abs(c-zc)!==1)return;
+ [puzzle[i],puzzle[z]]=[puzzle[z],puzzle[i]];renderPuzzle();
+ if(puzzle.join(',')==='1,2,3,4,5,6,7,8,0')$('puzzleStatus').textContent='Muito bem! Você organizou o quebra-cabeça! 🌼';
+}
+function shufflePuzzle(){
+ puzzle=[1,2,3,4,5,6,7,8,0];
+ for(let k=0;k<100;k++){const z=puzzle.indexOf(0),r=Math.floor(z/3),c=z%3,opts=[];if(r>0)opts.push(z-3);if(r<2)opts.push(z+3);if(c>0)opts.push(z-1);if(c<2)opts.push(z+1);const i=opts[Math.floor(Math.random()*opts.length)];[puzzle[z],puzzle[i]]=[puzzle[i],puzzle[z]];}
+ $('puzzleStatus').textContent='Peças embaralhadas. Organize os números sem pressa.';renderPuzzle();
+}
+$('shufflePuzzle').addEventListener('click',shufflePuzzle);$('solvePuzzle').addEventListener('click',()=>{puzzle=[1,2,3,4,5,6,7,8,0];$('puzzleStatus').textContent='Quebra-cabeça pronto para começar.';renderPuzzle();});shufflePuzzle();
+
+// Learning quiz
+const quiz=[
+{q:'Qual letra inicia a palavra “árvore”?',opts:['A','B','C'],a:'A',why:'Árvore começa com a letra A.'},
+{q:'Quanto é 2 + 3?',opts:['4','5','6'],a:'5',why:'Dois mais três é igual a cinco.'},
+{q:'Qual destes animais é uma ave?',opts:['Gato','Sapo','Tucano'],a:'Tucano',why:'O tucano é uma ave.'},
+{q:'Qual palavra combina com a imagem de 🌞?',opts:['Sol','Lua','Chuva'],a:'Sol',why:'O símbolo representa o Sol.'},
+{q:'Qual atitude ajuda a natureza?',opts:['Jogar lixo no rio','Separar recicláveis','Arrancar todas as flores'],a:'Separar recicláveis',why:'Separar materiais recicláveis ajuda a reduzir o lixo.'},
+{q:'Qual número vem depois do 9?',opts:['8','10','11'],a:'10',why:'Depois do nove vem o dez.'}
+];let qi=0,qAnswered=false,qScore=0;
+function renderQuiz(){const q=quiz[qi];qAnswered=false;$('quizProgress').textContent=`Pergunta ${qi+1} de ${quiz.length} · Acertos: ${qScore}`;$('quizQuestion').textContent=q.q;$('quizFeedback').textContent='Escolha uma resposta.';$('quizOptions').innerHTML='';q.opts.forEach(opt=>{const b=document.createElement('button');b.textContent=opt;b.addEventListener('click',()=>{if(qAnswered)return;qAnswered=true;const correct=opt===q.a;if(correct)qScore++;$('quizFeedback').textContent=(correct?'Muito bem! ':'Vamos aprender: ')+q.why;$('quizProgress').textContent=`Pergunta ${qi+1} de ${quiz.length} · Acertos: ${qScore}`;});$('quizOptions').appendChild(b);});}
+$('nextQuestion').addEventListener('click',()=>{if(qi<quiz.length-1){qi++;renderQuiz()}else{$('quizQuestion').textContent='Você concluiu a atividade! 🌟';$('quizOptions').innerHTML='';$('quizFeedback').textContent=`Resultado: ${qScore} de ${quiz.length} acertos. Você pode recomeçar quando quiser.`;$('quizProgress').textContent='Atividade concluída';}});$('restartQuiz').addEventListener('click',()=>{qi=0;qScore=0;renderQuiz()});renderQuiz();
+
+// Creative canvas
+const canvas=$('drawing'),ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);let drawing=false,last=null;
+function point(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};}
+canvas.addEventListener('pointerdown',e=>{drawing=true;last=point(e);canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.strokeStyle=$('drawColor').value;ctx.lineWidth=Number($('brushSize').value);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;});
+function endDraw(){drawing=false;last=null;}canvas.addEventListener('pointerup',endDraw);canvas.addEventListener('pointercancel',endDraw);
+$('clearCanvas').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);});
+$('stampFlower').addEventListener('click',()=>{ctx.font='58px sans-serif';ctx.fillText('🌼',80+Math.random()*500,80+Math.random()*250);});
+$('stampSun').addEventListener('click',()=>{ctx.font='58px sans-serif';ctx.fillText('☀️',80+Math.random()*500,80+Math.random()*250);});
+
+// Nature habitat challenge
+const nature=[
+{animal:'🦁 Leão',q:'Onde vive naturalmente o leão?',opts:['Savana','Oceano','Gelo polar'],a:'Savana',why:'Leões vivem principalmente em áreas de savana da África.'},
+{animal:'🐬 Golfinho',q:'Qual habitat combina com o golfinho?',opts:['Deserto','Oceano','Floresta seca'],a:'Oceano',why:'Golfinhos vivem na água, principalmente em mares e oceanos.'},
+{animal:'🐸 Sapo',q:'Onde um sapo costuma viver?',opts:['Perto de água e áreas úmidas','No alto de montanhas geladas','No meio do oceano'],a:'Perto de água e áreas úmidas',why:'Muitos sapos vivem em ambientes úmidos e dependem da água em parte do seu ciclo de vida.'},
+{animal:'🐪 Camelo',q:'Qual ambiente é conhecido por ser habitat de camelos?',opts:['Floresta tropical','Deserto','Recife de coral'],a:'Deserto',why:'Camelo é adaptado a ambientes secos, como desertos.'},
+{animal:'🐧 Pinguim',q:'Em qual ambiente vivem muitas espécies de pinguins?',opts:['Regiões frias do hemisfério sul','Deserto quente','Rios tropicais'],a:'Regiões frias do hemisfério sul',why:'Muitas espécies vivem no hemisfério sul; nem todas vivem na Antártida.'}
+];let ni=0,nAnswered=false,nScore=0;
+function renderNature(){const item=nature[ni];nAnswered=false;$('natureProgress').textContent=`Desafio ${ni+1} de ${nature.length} · Acertos: ${nScore}`;$('natureQuestion').textContent=item.q;$('natureFeedback').textContent='Escolha um habitat.';$('habitatOptions').innerHTML='';item.opts.forEach(opt=>{const b=document.createElement('button');b.textContent=opt;b.addEventListener('click',()=>{if(nAnswered)return;nAnswered=true;const ok=opt===item.a;if(ok)nScore++;$('natureFeedback').textContent=(ok?'Correto! ':'Tente novamente no próximo desafio. ')+item.why;$('natureProgress').textContent=`Desafio ${ni+1} de ${nature.length} · Acertos: ${nScore}`;});$('habitatOptions').appendChild(b);});}
+$('nextNature').addEventListener('click',()=>{if(ni<nature.length-1){ni++;renderNature()}else{$('natureQuestion').textContent='Você concluiu os desafios da natureza! 🌿';$('habitatOptions').innerHTML='';$('natureFeedback').textContent=`Resultado: ${nScore} de ${nature.length} acertos. Continue explorando e aprendendo!`;$('natureProgress').textContent='Desafios concluídos';}});$('restartNature').addEventListener('click',()=>{ni=0;nScore=0;renderNature()});renderNature();
+</script>
+</body>
+</html>
